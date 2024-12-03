@@ -2,6 +2,7 @@ import React from 'react'
 import { useState, useEffect, useRef } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { v4 as uuidv4 } from 'uuid';
 
 const Manager = () => {
     const [form, setform] = useState({ site: "", username: "", password: "" })
@@ -25,10 +26,30 @@ const Manager = () => {
 
 
     const savePassword = () => {
-        setpasswordArray([...passwordArray, form])
-        localStorage.setItem("passwords", JSON.stringify([...passwordArray, form]))
-        console.log([...passwordArray, form]);
+        if(form.username.length>3 && form.site.length>3 && form.password.length>3)
+        {
+            setpasswordArray([...passwordArray,{...form, id:uuidv4()} ])
+            localStorage.setItem("passwords", JSON.stringify([...passwordArray, {...form, id:uuidv4()}]))
+            console.log([...passwordArray, form]);
+            setform({site: "", username: "", password: ""})
+            toast.success('Password Saved!', {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false, 
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                
+            });
+        }
+        else
+        {
+            toast.error('Error : Password Not Saved!', {
+                position: "bottom-left"});
 
+        }
     }
     const handleChange = (e) => {
         setform({ ...form, [e.target.name]: e.target.value });
@@ -49,6 +70,33 @@ const Manager = () => {
         navigator.clipboard.writeText(text);
     }
 
+    const editPassword = (id) => {
+        console.log("Editing password " + id);
+      setform(passwordArray.filter(i=>i.id===id)[0]);
+      localStorage.setItem("passwords", JSON.stringify(passwordArray.filter(item=>item.id!==id)))
+
+    }
+    
+    const deletePassword = (id) => {    
+    let c = confirm("Do you want to delete the data ?");
+    if (c)
+    {
+        setpasswordArray(passwordArray.filter(item=>item.id!==id));
+        localStorage.setItem("passwords", JSON.stringify(passwordArray.filter(item=>item.id!==id)))
+    }
+    toast.success('Password Deleted!', {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+       
+        });
+    }
+    
     return (
         <>
             <ToastContainer
@@ -67,7 +115,7 @@ const Manager = () => {
             <ToastContainer />
             <div className="absolute inset-0 -z-10 h-full w-full bg-orange-50 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"><div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-orange-400 opacity-20 blur-[100px]"></div></div>
 
-            <div className="mycontainer">
+            <div className="md:mycontainer p-2 md:p-0 min-h-[95.6vh]"> 
 
                 <h1 className='text-2xl text-center font-bold'><span className='text-orange-900'>
                     &#123;
@@ -102,16 +150,26 @@ const Manager = () => {
                                 <th className='py-2'>Site</th>
                                 <th className='py-2'>Username</th>
                                 <th className='py-2'>Password</th>
+                                <th className='py-2'>Actions</th>
                             </tr>
                         </thead>
                         <tbody className='bg-orange-100 '>
                             {passwordArray.map((item, index) => {
                                 return <tr key={index}>
-                                    <td className='py-2 border border-white text-center w-32 '> <a href={item.site} target='_blank'>{item.site}</a> <button className='p-1' onClick={() => { copyText(item.site) }}><img className='w-4' src="/copy.png" alt="" /></button></td>
+                                    <td className='py-2 border border-white text-center w-[30%]'> <a href={item.site} target='_blank'>{item.site}</a> <button className='p-1' onClick={() => { copyText(item.site) }}><img className='w-4' src="/copy.png" alt="" /></button></td>
 
-                                    <td className='py-2 border border-white text-center w-32'>{item.username} <button onClick={() => { copyText(item.username) }} className='p-1' ><img className='w-4' src="/copy.png" alt="" /></button></td>
+                                    <td className='py-2 border border-white text-center w-[30%]'>{item.username} <button onClick={() => { copyText(item.username) }} className='p-1' ><img className='w-4' src="/copy.png" alt="" /></button></td>
 
-                                    <td className='py-2 border border-white text-center w-32'>{item.password}  <button onClick={() => { copyText(item.password) }} className='p-1' ><img className='w-4' src="/copy.png" alt="" /></button></td>
+                                    <td className='py-2 border border-white text-center w-[30%]'>{item.password}  <button onClick={() => { copyText(item.password) }} className='p-1' ><img className='w-4' src="/copy.png" alt="" /></button></td>
+
+                                    <td className='py-2 border border-white flex justify-center text-center '>
+                                        <button onClick={()=>{editPassword(item.id)}}>
+                                            <img  width={31} src="/edit.svg" alt="edit" />
+                                        </button>
+                                        <button onClick={()=>{deletePassword(item.id)}}>
+                                            <img width={35} src="/delete.svg" alt="edit" />
+                                        </button>
+                                    </td>
                                 </tr>
                             })}
 
